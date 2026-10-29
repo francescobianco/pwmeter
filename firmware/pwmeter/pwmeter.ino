@@ -50,7 +50,8 @@ void handleStatus() {
   server.send(200, "application/json",
               "{\"power_w\":" + String(power, 1) +
               ",\"energy_kwh\":" + String(p / IMPULSES_PER_KWH, 3) +
-              ",\"pulses\":" + String(p) + "}");
+              ",\"pulses\":" + String(p) +
+              ",\"sensor\":" + String(digitalRead(SENSOR_PIN)) + "}");  // 0 = luce
 }
 
 String esc(String s) {
@@ -81,13 +82,14 @@ void handleStatusPage() {
                   "<h2>PWMeter</h2><p>Rete: <b>");
   page += esc(WiFi.SSID()) + "</b> (" + WiFi.localIP().toString() + ")";
   page += F("<p>Potenza: <b id=p>-</b> W<br>Energia: <b id=e>-</b> kWh"
-            "<br>Impulsi: <b id=n>-</b>"
+            "<br>Impulsi: <b id=n>-</b><br>Sensore GPIO2: <b id=s>-</b>"
             "<form method=post action=/forget "
             "onsubmit=\"return confirm('Dimenticare la rete e riavviare in modalità AP?')\">"
             "<button>Disconnetti Wi-Fi</button></form><script>"
             "function f(){fetch('/api/status').then(r=>r.json()).then(d=>{"
-            "p.textContent=d.power_w;e.textContent=d.energy_kwh;n.textContent=d.pulses})"
-            ".catch(()=>{})}f();setInterval(f,2000)</script>");
+            "p.textContent=d.power_w;e.textContent=d.energy_kwh;n.textContent=d.pulses;"
+            "s.textContent=d.sensor?'1 (buio)':'0 (luce)'})"
+            ".catch(()=>{})}f();setInterval(f,500)</script>");
   server.send(200, "text/html", page);
 }
 
@@ -111,7 +113,7 @@ void handleForget() {
 
 void setup() {
   Serial.begin(115200);
-  pinMode(SENSOR_PIN, INPUT_PULLUP);
+  pinMode(SENSOR_PIN, INPUT);  // pull-up esterno verso 3,3 V (es. 680k), vedi IDEA.md
   attachInterrupt(digitalPinToInterrupt(SENSOR_PIN), onPulse, FALLING);
 
   WiFi.mode(WIFI_STA);

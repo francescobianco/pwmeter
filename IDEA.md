@@ -410,7 +410,7 @@ Opzione a costo zero, LDR + trimmer:
                          GND
 ```
 
-In entrambi i casi GPIO2 è **alto al buio e basso durante il lampeggio**. È la polarità giusta: l'ESP8266 si avvia dalla flash solo se GPIO2 è alto all'accensione. GPIO3 (RX) è sconsigliato perché sull'adattatore è collegato al TX del CH340.
+In entrambi i casi GPIO2 è **alto al buio e basso durante il lampeggio**. Il firmware non attiva il pull-up interno (circa 30–50 kΩ, troppo basso rispetto a una LDR): la resistenza verso 3,3 V è sempre esterna e va scelta in base all'LDR. Al banco, con il pull-up interno attivo, la LDR alla luce ambiente non riusciva a portare il pin basso; la prova in corso usa 680 kΩ. Senza resistenza esterna GPIO2 resta flottante. È la polarità giusta: l'ESP8266 si avvia dalla flash solo se GPIO2 è alto all'accensione. GPIO3 (RX) è sconsigliato perché sull'adattatore è collegato al TX del CH340.
 
 La calibrazione si fa col trimmer: sul modulo LM393 il LED di bordo deve lampeggiare in sincronia con quello del contatore. L'opzione LDR + trimmer non ha isteresi e può generare fronti multipli; il firmware li scarta (contatore `rejected` in `/api/raw`), ma se sono frequenti conviene passare al modulo LM393.
 
@@ -421,7 +421,7 @@ La calibrazione si fa col trimmer: sul modulo LM393 il LED di bordo deve lampegg
 3. Togliere il ponticello e ricollegare l'adattatore.
 4. Al primo avvio non c'è una rete salvata: l'ESP apre l'access point aperto **PWMeter**. Collegandosi, la pagina `http://192.168.4.1` elenca le reti visibili; si sceglie la rete, si inserisce la password e si salva. Le credenziali restano nella flash dell'ESP e il dispositivo si riavvia collegandosi alla rete.
 5. Se la rete salvata non risponde entro 20 secondi, il portale si riapre. Dopo 5 minuti senza client collegati l'ESP si riavvia e riprova la rete salvata (utile se il router si riaccende dopo un blackout).
-6. Da connesso, `http://<ip>/` mostra lo stato (rete, potenza, energia, impulsi aggiornati ogni 2 s) e il tasto **Disconnetti Wi-Fi**, che cancella la rete salvata e riavvia in modalità AP.
+6. Da connesso, `http://<ip>/` mostra lo stato (rete, potenza, energia, impulsi e livello del sensore su GPIO2, aggiornati ogni 0,5 s) e il tasto **Disconnetti Wi-Fi**, che cancella la rete salvata e riavvia in modalità AP.
 7. Se la rete sparisce per più di un minuto (router spento o rete dell'ufficio cambiata), l'ESP si riavvia: non trovandola, torna in modalità AP e si può riconfigurare.
 
 La flash dell'ESP-01 in uso (produttore `0xe0`, probabilmente BergMicro) richiede la modalità DOUT: con QIO/DIO il chip va in crash all'avvio (`Fatal exception (0)`).
